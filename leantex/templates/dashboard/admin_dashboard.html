@@ -1,0 +1,541 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-dark text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h2 class="fw-bold mb-2">
+                                <i class="fas fa-crown me-2"></i>Administrator Dashboard
+                            </h2>
+                            <p class="mb-0">
+                                <i class="fas fa-building me-2"></i>Leantex Company Limited | 
+                                <i class="fas fa-chart-line ms-3 me-2"></i>{{ today_date|date:"F d, Y" }}
+                            </p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <div class="dropdown">
+                                <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-download me-2"></i>Export Report
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i>Excel</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-print me-2"></i>Print</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card metric-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Revenue</h6>
+                            <h3 class="text-white">KSh {{ total_revenue|floatformat:2 }}</h3>
+                            <small class="text-white-50">
+                                <i class="fas fa-arrow-up me-1"></i>+12.5% from last month
+                            </small>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card metric-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Total Bookings</h6>
+                            <h3 class="text-white">{{ total_bookings }}</h3>
+                            <small class="text-white-50">
+                                <i class="fas fa-calendar me-1"></i>{{ monthly_bookings }} this month
+                            </small>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card metric-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Active Customers</h6>
+                            <h3 class="text-white">{{ total_customers }}</h3>
+                            <small class="text-white-50">
+                                <i class="fas fa-user-plus me-1"></i>{{ new_customers }} new this month
+                            </small>
+                        </div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card metric-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-white-50">Pending Tasks</h6>
+                            <h3 class="text-white">{{ pending_bookings }}</h3>
+                            <small class="text-white-50">
+                                <i class="fas fa-clock me-1"></i>{{ unassigned_bookings }} unassigned
+                            </small>
+                        </div>
+                        <i class="fas fa-tasks fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-primary me-2"></i>Revenue Overview
+                    </h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary active">Weekly</button>
+                        <button class="btn btn-sm btn-outline-primary">Monthly</button>
+                        <button class="btn btn-sm btn-outline-primary">Yearly</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie text-primary me-2"></i>Booking Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="bookingPieChart" height="250"></canvas>
+                    <div class="mt-3">
+                        {% for status in status_counts %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>
+                                    <span class="badge bg-{% if status.status == 'completed' %}success{% elif status.status == 'pending' %}warning{% elif status.status == 'cancelled' %}danger{% else %}info{% endif %} me-2">
+                                        ●
+                                    </span>
+                                    {{ status.status|title }}
+                                </span>
+                                <span class="fw-bold">{{ status.count }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-primary me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'dashboard:manage_bookings' %}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-calendar-check fa-2x mb-2"></i><br>
+                                Manage Bookings
+                                {% if unassigned_bookings %}
+                                    <span class="badge bg-danger position-absolute top-0 end-0 mt-2 me-2">{{ unassigned_bookings }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin:services_service_changelist' %}" class="btn btn-outline-success w-100 py-3">
+                                <i class="fas fa-tools fa-2x mb-2"></i><br>
+                                Manage Services
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-outline-info w-100 py-3">
+                                <i class="fas fa-users-cog fa-2x mb-2"></i><br>
+                                Manage Users
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin:index' %}" class="btn btn-outline-warning w-100 py-3">
+                                <i class="fas fa-cog fa-2x mb-2"></i><br>
+                                System Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings and Top Services -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock text-primary me-2"></i>Recent Bookings
+                    </h5>
+                    <a href="{% url 'dashboard:manage_bookings' %}" class="btn btn-sm btn-primary">
+                        View All <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Booking #</th>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Date/Time</th>
+                                    <th>Technician</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in recent_bookings %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold">{{ booking.booking_number }}</span>
+                                        </td>
+                                        <td>
+                                            {{ booking.customer_name }}<br>
+                                            <small class="text-muted">{{ booking.customer_phone }}</small>
+                                        </td>
+                                        <td>{{ booking.service.name }}</td>
+                                        <td>
+                                            {{ booking.date|date:"M d" }}<br>
+                                            <small>{{ booking.time|time:"h:i A" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if booking.technician %}
+                                                {{ booking.technician.get_full_name|default:booking.technician.username }}
+                                            {% else %}
+                                                <span class="badge bg-warning">Unassigned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if booking.status == 'completed' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                                {{ booking.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'dashboard:assign_technician' booking.id %}" class="btn btn-sm btn-outline-primary" title="Assign Technician">
+                                                    <i class="fas fa-user-cog"></i>
+                                                </a>
+                                                <a href="{% url 'admin:bookings_booking_change' booking.id %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>Popular Services
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for service in popular_services %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>{{ service.name }}</span>
+                                <span class="fw-bold">{{ service.booking_count }} bookings</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: {% widthratio service.booking_count popular_services.0.booking_count 100 %}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell text-primary me-2"></i>Notifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item px-0">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <div class="bg-warning bg-opacity-25 rounded-circle p-2">
+                                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>{{ unassigned_bookings }} bookings need technician assignment</strong>
+                                    <p class="text-muted mb-0 small">Action required</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <div class="bg-success bg-opacity-25 rounded-circle p-2">
+                                        <i class="fas fa-check-circle text-success"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>{{ completed_today }} bookings completed today</strong>
+                                    <p class="text-muted mb-0 small">Great progress!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item px-0">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <div class="bg-info bg-opacity-25 rounded-circle p-2">
+                                        <i class="fas fa-user-plus text-info"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>{{ new_customers }} new customers this week</strong>
+                                    <p class="text-muted mb-0 small">Growing business</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technician Performance -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-medal text-primary me-2"></i>Technician Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Technician</th>
+                                    <th>Jobs Completed</th>
+                                    <th>Avg. Rating</th>
+                                    <th>On-Time Rate</th>
+                                    <th>Current Load</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tech in technicians %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded-circle p-2 me-2">
+                                                    <i class="fas fa-user-cog"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ tech.get_full_name|default:tech.username }}</strong><br>
+                                                    <small class="text-muted">{{ tech.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="fw-bold">{{ tech.completed_jobs|default:"0" }}</td>
+                                        <td>
+                                            <span class="text-warning">
+                                                {% for i in "12345"|make_list %}
+                                                    {% if forloop.counter <= tech.avg_rating|default:5 %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </span>
+                                        </td>
+                                        <td>{{ tech.on_time_rate|default:"98" }}%</td>
+                                        <td>
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar bg-{% if tech.current_load < 50 %}success{% elif tech.current_load < 75 %}warning{% else %}danger{% endif %}" 
+                                                     style="width: {{ tech.current_load|default:60 }}%"></div>
+                                            </div>
+                                            <small>{{ tech.assigned_jobs|default:"0" }} active jobs</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">Active</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient-dark {
+    background: linear-gradient(135deg, #343a40 0%, #1d2124 100%);
+}
+
+.metric-card {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-group .btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.list-group-item {
+    border: none;
+    padding: 1rem 0;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Revenue Chart
+var ctx1 = document.getElementById('revenueChart').getContext('2d');
+var revenueChart = new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+            label: 'Revenue (KSh)',
+            data: [120000, 150000, 180000, 160000, 210000, 240000, 280000, 310000, 290000, 330000, 380000, {{ total_revenue }}],
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'KSh ' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Booking Distribution Pie Chart
+var ctx2 = document.getElementById('bookingPieChart').getContext('2d');
+var bookingPieChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: [{% for status in status_counts %}'{{ status.status|title }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for status in status_counts %}{{ status.count }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+            backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545', '#6c757d'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        },
+        cutout: '70%'
+    }
+});
+
+// Handle time range buttons
+document.querySelectorAll('.btn-group .btn').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
+        // Here you would update the chart data via AJAX
+    });
+});
+
+// Auto-refresh data every 5 minutes
+setTimeout(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

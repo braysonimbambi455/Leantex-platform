@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Welcome to Leantex</h1>
+                <p class="lead">Your trusted partner for CCTV installation, WiFi setup, computer sales, laptop repair, and accounting advice.</p>
+                <a href="{% url 'services:list' %}" class="btn btn-light btn-lg">View Our Services</a>
+            </div>
+            <div class="col-lg-6">
+                <img src="{% static 'images/hero-image.png' %}" alt="Leantex Services" class="img-fluid" onerror="this.style.display='none'">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="services py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Our Services</h2>
+        <div class="row">
+            {% for service in featured_services %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" class="card-img-top" alt="{{ service.name }}">
+                        {% else %}
+                            <div class="card-img-top bg-light text-center py-5">
+                                <i class="fas fa-cog fa-3x text-primary"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ service.name }}</h5>
+                            <p class="card-text">{{ service.description|truncatewords:20 }}</p>
+                            <p class="text-primary fw-bold">KSh {{ service.price }}</p>
+                            <a href="{% url 'services:detail' service.id %}" class="btn btn-outline-primary">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12 text-center">
+                    <p>No services available at the moment.</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'services:list' %}" class="btn btn-primary">View All Services</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="features bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Why Choose Leantex?</h2>
+        <div class="row">
+            <div class="col-md-3 text-center mb-4">
+                <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                <h5>24/7 Support</h5>
+                <p>Round-the-clock customer service</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <i class="fas fa-tools fa-3x text-primary mb-3"></i>
+                <h5>Expert Technicians</h5>
+                <p>Certified and experienced</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                <h5>Quality Guaranteed</h5>
+                <p>100% satisfaction guarantee</p>
+            </div>
+            <div class="col-md-3 text-center mb-4">
+                <i class="fas fa-money-bill-wave fa-3x text-primary mb-3"></i>
+                <h5>Affordable Prices</h5>
+                <p>Competitive rates</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+{% if testimonials %}
+<section class="testimonials py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">What Our Clients Say</h2>
+        <div class="row">
+            {% for testimonial in testimonials %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= testimonial.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="card-text">"{{ testimonial.content }}"</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex align-items-center">
+                                {% if testimonial.image %}
+                                    <img src="{{ testimonial.image.url }}" class="rounded-circle me-3" width="50" height="50" alt="{{ testimonial.customer_name }}">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h6 class="mb-0">{{ testimonial.customer_name }}</h6>
+                                    <small class="text-muted">{{ testimonial.customer_role }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="cta bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-3">Ready to Get Started?</h2>
+        <p class="lead mb-4">Book our services today and experience the Leantex difference.</p>
+        <a href="{% url 'services:list' %}" class="btn btn-light btn-lg">Book Now</a>
+    </div>
+</section>
+{% endblock %}
